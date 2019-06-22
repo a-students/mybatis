@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Mapper.UserMapper">
+
+    <!--
+        if:判断
+        choose:(when otherwise) :分支选择 switch—case
+            如果带了id就用id查,如果带了lastname就用lastname查;只会进入其中一个
+        trim:字符串截取(where(封装查询条件) set(封装修改条件))
+        foreach()
+    -->
+    <!--
+        查询员工,要求,携带了哪个字段,查询时就拼上哪个字段的值
+
+            test:判断表达式(OGNL表达式)
+            从参数中取值进行判断
+            遇到特殊符号需使用转义字符
+            ognl会进行字符串与数字的转换
+    -->
+
+    <select id="getuserbyconditionif" resultType="Entity.User" parameterType="Entity.User">
+        select * from user <where>
+        <if test="id!=null">
+            id=#{id}
+        </if>
+        <if test="lastname!=null and lastname!=''">
+            and lastname like #{lastname}
+        </if>
+        <if test="gender==1 or gender==0">
+            and gender=#{gender}
+        </if>
+    </where>
+    </select>
+    <!--
+        后面多出的and或or  where标签不能解决
+        trim标签体中是整个字符串拼串后的结果
+            prefix="" :前缀:prefix给拼串后的整体字符串加一个前缀
+            prefixOverrides="" :前缀覆盖:去掉整个字符串前面多余的字符
+            suffix="" :后缀:给拼串后的整体字符串加一个后缀
+            suffixOverrides="":后缀覆盖:去掉整个字符串后面多余的字符
+    -->
+    <select id="getuserbyconditiontrim" parameterType="User" resultType="Entity.User">
+        select * from user
+        <trim prefix="where" suffixOverrides="and">
+            <if test="id!=null">
+                id=#{id} and
+            </if>
+            <if test="lastname!=null and lastname!=''">
+                 lastname like #{lastname} and
+            </if>
+            <if test="gender==1 or gender==0">
+                gender=#{gender}
+            </if>
+        </trim>
+    </select>
+    <!--
+         choose:(when otherwise) :分支选择 switch—case
+            如果带了id就用id查,如果带了lastname就用lastname查;只会进入其中一个
+    -->
+    <select id="getuserbyconditionchoose" resultType="Entity.User">
+        select * from user
+            <where>
+                <choose>
+                    <when test="id!=null">
+                        id=#{id}
+                    </when>
+                    <when test="lastname!=null">
+                        lastname like #{lastname}
+                    </when>
+                    <when test="gender!=null">
+                        gender=#{gender}
+                    </when>
+                    <otherwise>
+                        gender=0
+                    </otherwise>
+                </choose>
+            </where>
+    </select>
+    <!--
+        set标签的使用
+    -->
+   <!-- <update id="updateuser">
+
+        update user
+            <set>
+                <if test="lastname!=null">
+                    lastname=#{lastname},
+                </if>
+                <if test="gender!=null">
+                    gender=#{gender}
+                </if>
+            </set>
+            where id=#{id}
+    </update>-->
+    <!--
+    trim标签的使用
+    -->
+    <update id="updateuser">
+        update user
+        <trim prefix="set" suffixOverrides=",">
+            <if test="lastname!=null">
+                lastname=#{lastname},
+            </if>
+            <if test="gender!=null">
+                gender=#{gender}
+            </if>
+        </trim>
+        where id=#{id}
+    </update>
+    <!--
+        collection:指定要遍历的集合
+            list类型的参数会特殊处理封装在map中,map的key就叫list
+        item:将当前遍历出的元素赋值给指定的变量
+        separator:每一个元素之间的分隔符
+        #{变量名}就能取出变量的值也就是当前遍历出的元素
+        open:遍历出的所有结果拼接一个开始的字符
+        close:遍历出的所有结果拼接一个结束的字符
+        index:索引,遍历list时是索引
+                    遍历map是index就是map的key,item就是map的值
+    -->
+    <select id="getuserbyconditionforeach" resultType="Entity.User">
+        select * from user where id in
+            <foreach collection="list" item="item_id" separator="," open="(" close=")">
+                    #{item_id}
+            </foreach>
+    </select>
+
+</mapper>
