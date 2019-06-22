@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Mapper.DepartmentPlus">
+
+    <select id="getdepartment" resultType="Entity.Department">
+        select id,departmentName from department where id=#{id}
+    </select>
+    <!--场景二
+            查询部门时将部门对应的所有员工信息也查询出来
+    -->
+    <select id="getdepartmentplus" resultMap="mydept">
+        select d.id did,d.departmentName deptname,u.id uid,u.lastname lastname,u.gender gender
+        from department d left join user u on d.id=u.d_id where d_id=#{id}
+    </select>
+
+    <!--did | deptname  =======> uid | lastname | gender -->
+    <!--
+        collection嵌套结果集的方式,定义关联的集合类型元素封装规则
+    -->
+    <resultMap id="mydept" type="Department">
+        <id column="did" property="id"></id>
+        <result column="deptname" property="departmentName"></result>
+        <!--
+            collection:定义管关联集合类型的属性封装规则
+            ofType:集合元素的类型
+
+        -->
+        <collection property="users" ofType="User">
+            <id column="uid" property="id"></id>
+            <result column="lastname" property="lastname"></result>
+            <result column="gender" property="gender"></result>
+        </collection>
+    </resultMap>
+
+    <!--分步查询-->
+ <!--   <select id="getdeptbyidstep" resultMap="mydeptstep">
+        select id,deptname departmentName from department where id=#{id}
+    </select>
+    <resultMap id="mydeptstep" type="Department">
+        <id column="id" property="id"></id>
+        <result column="deptname" property="departmentName"></result>
+        <collection property="users" select="Mapper.UserMapperPlus.getuserbydeptid">
+            
+        </collection>
+    </resultMap>-->
+
+
+
+
+
+
+
+
+
+
+
+</mapper>

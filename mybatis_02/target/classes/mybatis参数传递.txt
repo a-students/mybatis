@@ -1,0 +1,59 @@
+单个参数:(mybatis不会做特殊处理)
+    #{参数名},取出参数值
+多个参数:
+    多个参数会被封装成一个map
+        key:param1.....paramN
+        value:传入的参数值
+     #{}就是从map中获取指定的key的值
+     异常:
+        org.apache.ibatis.binding.BindingException: Parameter 'id' not found.
+        Available parameters are [arg1, arg0, param1, param2]
+     操作:
+         public User selectbyidandlastname(Integer id,String lastname);
+         取值:#{id} #{lastname}
+命名参数:明确指定封装参数时map的key,@Param("id")
+     多个参数会被封装成map
+            key:使用@Param注解指定的值
+            value:参数值
+
+POJO:
+如果多个参数正好是我们业务逻辑的数据模型,我们就直接传入POJO;
+Map:
+    如果多个参数不是业务模型中的数据,没有对应的POJO,为了方便,我们也可以传入map
+        #{key},取出map中对应的值
+TO:
+如果多个参数不是业务模型中的数据,但是经常使用,推荐来编写一个TO(Transfer Object)数据传输对象
+page{
+    int index;
+    int size;
+}
+===========================思考=======================================
+Public User getuser(@Param("id")integer id,String lastname);
+    取值:id===>#{id/param1}  lastname===>#{param2}
+Public User getuser(integer id,@Param("e")User user);
+    取值:id===>#{param1},lastname===>#{param2.lastname/e.lastname}
+##特别注意,如果是Collection(list,set)类型或者是数组
+    也会特殊处理,也就是把传入的list或数组封装在map中
+Public User getuser(List<Integer> ids);
+    取值:取出第一个id的值  #{ids[0]}
+============================结合源码====================
+======================参数值的获取======================
+#{},可以获取map中的值或者pojo对象属性的值
+${},可以获取map中的值或者pojo对象属性的值
+    区别:#{}:是以预编译的形式,将参数设置到sql语句中,可以防止sql注入
+        ${}:去处得知直接拼装在sql语句中,会有安全问题
+        大多情况下,我们取出参数值都用#{}
+
+#{}:更丰富的用法
+    规定参数的一些规则:
+    javaType,jdbcType,mode(存储过程),numericScale
+    resultMap,typeHandler,jdbcTypeName,expression
+
+    javaType通常需要在某种特定的条件下被设置:
+        在我们数据为null时,有些数据库可能不能识别mybatis对null的默认处理,比如oracle
+        JdbcType OTHER:无效的类型,因为mybatis默认对所有的null都映射的是原生Jdbc的OTHER类型
+
+        由于全局配置中,jdbcTypeForNull=OTHER;oracle不支持,两种办法
+            1.#{email,jdbcType=OTHER}
+            2.jdbcTypeForNull=NULL
+                <setting name="jdbcTypeForNull" value="NULL"/>

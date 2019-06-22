@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Mapper.UserMapperPlus">
+    <!--自定义某个javabean映射规则
+        type:自定义规则的java类型
+        id:唯一id,方便引用
+    -->
+    <resultMap id="user" type="Entity.User">
+        <!--指定主键的封装规则
+                id定义主键会有优化
+                    column:指定哪一列
+                    property:指定对应的javaBean属性
+        -->
+        <id column="id" property="id"></id>
+        <result column="lastname" property="lastname"/>
+        <result column="gender" property="gender"></result>
+        <!--其他不指定的列会自动封装,推荐只要写resultMap就把所有的列都写上-->
+    </resultMap>
+
+    <!--resultMap:自定义结果集映射规则-->
+    <select id="getuserbyid"  parameterType="integer" resultMap="user">
+        select * from user where id=#{id}
+    </select>
+    <!--场景一:
+         查询user的同时查询员工对应的部门id
+             user===>Department
+             一个员工有与之对应的部门信息
+         id | lastname | gender | d_id | did | dept
+        -->
+        <!--联合查询:级联属性封装结果集-->
+        <resultMap id="myuser" type="Entity.User">
+            <id column="id" property="id"></id>
+            <result column="lastname" property="lastname"/>
+            <result column="gender" property="gender"/>
+
+            <result column="did" property="department.id"/>
+            <result column="dept" property="department.departmentName"/>
+        </resultMap>
+        <!--使用association定义单个对象的封装规则-->
+        <resultMap id="myuser2" type="Entity.User">
+            <id column="id" property="id"/>
+            <result column="lastname" property="lastname"/>
+            <result column="gender" property="gender"/>
+            <association property="department" javaType="Department">
+                <id column="did" property="id"></id>
+                <result column="dept" property="departmentName"/>
+            </association>
+        </resultMap>
+    <select id="getuseranddept" resultMap="myuser2">
+         select u.id id,u.lastname lastname,u.gender gender,
+            u.d_id d_id,d.id did,d.departmentName
+            dept from user u,department d where u.d_id=d.id and u.id=#{id}
+    </select>
+
+    <!--使用association进行分步查询
+        1.按照员工id查询员工信息
+        2.根据查询员工信息中的d_id去部门表查出部门信息
+        3.部门设置到员工中
+    -->
+    <!--分步查询可以使用延迟加载:
+        User====>Department
+            我们每次查询User时,都将一起查询出来
+            部门信息将会在我们使用时再去查询
+            分段查询的基础之上加上两个配置就可以实现延迟加载
+    -->
+    <resultMap id="myuserstep" type="User">
+        <id column="id" property="id"/>
+        <result column="lastname" property="lastname"/>
+        <result column="gender" property="gender"/>
+        <association property="department" select="Mapper.DepartmentPlus.getdepartment" column="d_id">
+            <!--
+                select:表明当前属性是调用select指定的方法查出的结果
+                column:指定将哪一列的值传给这个方法
+            流程:使用select指定的方法(传入column指定的这列参数的值)查出对象,并封装给property指定的属性
+            -->
+        </association>
+    </resultMap>
+    <select id="getuserbyidstep" resultMap="myuserstep">
+        select * from user where id=#{id}
+    </select>
+    <select id="getuserbydeptid" resultType="Entity.User">
+        select * from department WHERE d_id=#{deptid}
+    </select>
+
+
+</mapper>

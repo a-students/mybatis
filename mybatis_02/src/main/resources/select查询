@@ -1,0 +1,15 @@
+                SELECT查询
+1.如果返回值是一个集合,resultType要写集合中元素的类型
+2.返回一条记录的map,key就是列名,值就是对应的值
+    public Map<String,Object> getuserbyidreturnmap(Integer id);
+    <select id="getuserbyidreturnmap" resultType="map" parameterType="integer">
+            select * from mybatis_02 where id=#{id};
+    </select>
+3.多条记录封装一个map,map<Integer,User>,键是这条记录的主键,值是记录封装后的javabean
+    @MapKey("lastname")//告诉mybatis封装这个map时使用哪个属性作为key
+    public Map<Integer,User> getuserbylastnamereturnmap(String lastname);
+
+    //resultType使用map或者实体类封装都可以实现
+    <select id="getuserbylastnamereturnmap" resultType="map/user">
+            select * from mybatis_02 where lastname like #{lastname}
+     </select>

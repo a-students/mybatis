@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Mapper.UserMapper">
+    <!--
+    namespace:名称空间;指定为接口的全类名
+    id：唯一标识
+    resultType：返回值类型
+    #{id}：从传递过来的参数中取出id值
+    parameterType:参数类型,可以省略
+        mysql支持自增主键,自增主键值的获取,mybatis也是利用statement.getGenreatedKeys()获取主键值
+        useGeneratedKeys="true"，使用自增主键获取主键值策略
+        keyProperty：指定对应的主键属性,也就是mybatis获取到主键值后,将这个值封装给javaBean的哪个属性
+    public Employee getEmpById(Integer id);
+     -->
+    <select id="queryall" resultType="user">
+        select * from user where id = #{id}
+    </select>
+    <select id="selectbyidandlastname" resultType="Entity.User">
+        select * from user where id=#{id} and lastname=#{lastname}
+    </select>
+    <select id="getuserbyidreturnmap" resultType="map" parameterType="integer">
+        select * from user where id=#{id}
+    </select>
+    <select id="getuserbylastnamereturnmap" resultType="map">
+        select * from user where lastname like #{lastname}
+    </select>
+</mapper>
